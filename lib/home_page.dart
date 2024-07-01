@@ -2,21 +2,22 @@ import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:pr3/auth.dart';
 import 'package:firebase_database/firebase_database.dart';
+import 'package:pr3/firestore.dart';
 
 class HomePage extends StatefulWidget {
-  const HomePage({super.key});
+  HomePage({Key? key});
 
   @override
   State<HomePage> createState() => _HomePageState();
 }
 
 class _HomePageState extends State<HomePage> {
+  final FirestoreService firestoreService = FirestoreService();
   final DatabaseReference _database = FirebaseDatabase.instance.ref();
   final User? user = Auth().currentUser;
   String _data = "";
   String? username;
   List<String> parts = [];
-  
 
   @override
   void initState() {
@@ -28,7 +29,10 @@ class _HomePageState extends State<HomePage> {
 
   void _readData() {
     // Listening to changes in the database at the specified path ('/example')
-    _database.child('${parts[0]}/temperatureData/objectTemp').onValue.listen((event) {
+    _database
+        .child('${parts[0]}/temperatureData/objectTemp')
+        .onValue
+        .listen((event) {
       final data = event.snapshot.value;
       setState(() {
         _data = data.toString();
@@ -55,7 +59,7 @@ class _HomePageState extends State<HomePage> {
     );
   }
 
-  Widget _temp(){
+  Widget _temp() {
     return Text('Temperature: $_data');
   }
 
@@ -63,7 +67,14 @@ class _HomePageState extends State<HomePage> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: _title(),
+        title: Text('${parts[0]}'),
+        backgroundColor: Colors.blue,
+        actions: [
+          IconButton(
+            icon: const Icon(Icons.logout),
+            onPressed: signOut,
+          ),
+        ],
       ),
       body: Container(
         height: double.infinity,
@@ -73,11 +84,16 @@ class _HomePageState extends State<HomePage> {
           crossAxisAlignment: CrossAxisAlignment.center,
           mainAxisAlignment: MainAxisAlignment.center,
           children: <Widget>[
-            _userUid(),
             _temp(),
-            _signOutButton(),
           ],
         ),
+      ),
+      floatingActionButton: FloatingActionButton(
+        onPressed: () {
+          firestoreService.addNote(_data);
+        },
+        backgroundColor: Colors.blue,
+        child: const Icon(Icons.add, color: Colors.white),
       ),
     );
   }
